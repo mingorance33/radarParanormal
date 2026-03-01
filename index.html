@@ -69,14 +69,14 @@
                 radar.classList.add('alerta');
                 estado.textContent = `${cercanos.length} DETECTADOS`;
                 lista.innerHTML = cercanos.map(h => `
-                  <a href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}" 
-       target="_blank" style="text-decoration:none; color:inherit;">
-        <div class="spot-card">
-            <strong>${h.name}</strong><br>
-            <small>Distancia: ${h.dist.toFixed(1)} km</small><br>
-            <small style="color:var(--rojo)">📍 Navegar hacia aquí</small>
-        </div>
-    </a>
+                         <a href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}&travelmode=driving" 
+                               target="_blank" style="text-decoration:none; color:inherit;">
+                                <div class="spot-card">
+                                    <strong>${h.name}</strong><br>
+                                    <small>Distancia: ${h.dist.toFixed(1)} km</small><br>
+                                    <small style="color:var(--rojo)">📍 Navegar a este punto</small>
+                                </div>
+                            </a>
                 `).join('');
             } else {
                 radar.classList.remove('alerta');
