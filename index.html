@@ -48,16 +48,22 @@
         }
 
         // 3. Monitoreo GPS
-        navigator.geolocation.watchPosition((pos) => {
-            if(allData.length === 0) return;
-            const { latitude, longitude } = pos.coords;
-            const cercanos = allData.map(h => ({
-                ...h,
-                dist: getDistanciaKm(latitude, longitude, h.lat, h.lng)
-            })).filter(h => h.dist <= RADIO_KM).sort((a, b) => a.dist - b.dist);
-
-            actualizarUI(cercanos);
-        }, () => document.getElementById('estado').textContent = "GPS Denegado", {enableHighAccuracy: true});
+        navigator.geolocation.watchPosition(
+    (pos) => {
+        console.log("Ubicación obtenida");
+    },
+    (err) => {
+        // Esto lanzará un aviso en pantalla con el error real
+        let mensajeError = "Error GPS: ";
+        switch(err.code) {
+            case err.PERMISSION_DENIED: mensajeError += "Permiso denegado por el usuario o sistema."; break;
+            case err.POSITION_UNAVAILABLE: mensajeError += "Ubicación no disponible."; break;
+            case err.TIMEOUT: mensajeError += "Tiempo de espera agotado."; break;
+        }
+        alert(mensajeError);
+    },
+    { enableHighAccuracy: true }
+);
 
         // 4. Actualización de Interfaz
         function actualizarUI(cercanos) {
