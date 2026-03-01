@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radar Paranormal</title>
+    <style>
+        :root { --bg: #050506; --rojo: #b10018; }
+        body { background: var(--bg); color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        #radar {
+            width: 250px; height: 250px; border: 4px solid var(--rojo); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.5s ease; position: relative;
+        }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } }
+        
+        #lista-spots { width: 100%; max-width: 400px; margin-top: 30px; }
+        .spot-card { background: #1a1a1a; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid var(--rojo); }
+    </style>
+</head>
+<body>
+
+    <h1>Radar de Energía</h1>
+    <div id="radar" class="pulse"><span id="intensidad-text">Buscando...</span></div>
+    <div id="lista-spots"></div>
+
+    <script>
+        let allData = [];
+        const RADIO_KM = 5; // Radio de detección
+
+        // 1. Cargar datos
+        fetch('hotspots.json').then(r => r.json()).then(data => allData = data);
+
+        // 2. Función de distancia Haversine
+        function getDistanciaKm(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        // 3. Monitorear movimiento
+        navigator.geolocation.watchPosition((pos) => {
+            const { latitude, longitude } = pos.coords;
+            const cercanos = allData.map(h => ({
+                ...h,
+                dist: getDistanciaKm(latitude, longitude, h.lat, h.lng)
+            })).filter(h => h.dist <= RADIO_KM).sort((a, b) => a.dist - b.dist);
+
+            actualizarRadar(cercanos);
+        }, console.error, { enableHighAccuracy: true });
+
+        // 4. Actualizar UI
+        function actualizarRadar(cercanos) {
+            const radar = document.getElementById('radar');
+            const lista = document.getElementById('lista-spots');
+            const intensidad = cercanos.reduce((acc, h) => acc + (1 - (h.dist / RADIO_KM)), 0);
+
+            document.getElementById('intensidad-text').textContent = cercanos.length > 0 ? `DETECTADO: ${cercanos.length}` : "LIMPIO";
+            radar.style.borderColor = cercanos.length > 0 ? "red" : "#333";
+            
+            lista.innerHTML = cercanos.map(h => `
+                <div class="spot-card">
+                    <strong>${h.name}</strong><br>
+                    <small>${h.dist.toFixed(2)} km de distancia</small>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
