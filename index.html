@@ -3,201 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar Paranormal Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&display=swap" rel="stylesheet">
-    
+    <title>Radar Paranormal</title>
     <style>
-        :root { 
-            --bg: #000000; 
-            --rojo: #ff0000; /* Rojo puro para más impacto */
-            --gris: #333333;
-            --texto-secundario: #aaaaaa;
-            /* Fuentes */
-            --font-terror: 'Creepster', cursive; /* Para el título principal */
-            --font-misterio: 'Special+Elite', cursive; /* Para el estado y tarjetas */
+        :root { --bg: #050506; --rojo: #b10018; }
+        body { background: var(--bg); color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        
+        #radar {
+            width: 200px; height: 200px; border: 4px solid #333; border-radius: 50%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.5s ease; position: relative; margin: 30px 0;
         }
-
-        body { 
-            background: var(--bg); 
-            color: #fff; 
-            font-family: var(--font-misterio); /* Fuente por defecto */
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 20px; 
-            margin: 0;
-        }
-
-        /* Estilo Paranormal para el Título */
-        h1 { 
-            font-family: var(--font-terror);
-            font-size: 3rem; /* Más grande */
-            color: var(--rojo);
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            margin: 20px 0;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7), 2px 2px 2px #000; /* Efecto de brillo rojo siniestro */
-        }
-
-        /* Estilo del Radar */
-        #radar { 
-            width: 220px; 
-            height: 220px; 
-            border: 4px solid var(--gris); 
-            border-radius: 50%; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            transition: all 0.5s ease; 
-            position: relative; 
-            margin: 30px 0; 
-            background: radial-gradient(circle, #111 0%, #000 70%); /* Fondo interior degradado */
-        }
-
-        /* Animación de Alerta Paranormal */
-        .alerta { 
-            animation: pulse-paranormal 0.6s infinite; 
-            border-color: var(--rojo) !important; 
-            box-shadow: 0 0 50px var(--rojo); /* Brillo intenso */
-        }
-
-        @keyframes pulse-paranormal { 
-            0% { transform: scale(1); opacity: 1; } 
-            50% { transform: scale(1.1); opacity: 0.8; } 
-            100% { transform: scale(1); opacity: 1; } 
-        }
-
-        /* Estilo del texto dentro del radar */
-        #estado {
-            font-size: 1.2rem;
-            color: var(--texto-secundario);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-align: center;
-        }
-        .alerta #estado {
-            color: #fff;
-            text-shadow: 0 0 5px #fff;
-        }
-
-        /* Estilo de la Lista de Puntos */
-        #lista-spots { 
-            width: 100%; 
-            max-width: 450px; 
-        }
-
-        .spot-card { 
-            background: rgba(17, 17, 17, 0.9); /* Ligeramente transparente */
-            padding: 18px; 
-            margin-bottom: 15px; 
-            border-radius: 10px; 
-            border-left: 5px solid var(--gris); /* Borde lateral gris por defecto */
-            cursor: pointer; 
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .spot-card:hover {
-            background: rgba(30, 30, 30, 0.9);
-            transform: translateY(-3px); /* Pequeña elevación al pasar el ratón */
-        }
-
-        /* Borde rojo siniestro al detectar */
-        .alerta-card {
-            border-left-color: var(--rojo);
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
-        }
-
-        .spot-card strong {
-            font-size: 1.3rem;
-            color: #fff;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .spot-card small {
-            font-size: 0.9rem;
-            color: var(--texto-secundario);
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        /* Estilo para el enlace de navegación */
-        .nav-link {
-            text-decoration: none; 
-            color: inherit; 
-            display: block;
-        }
-
-        .nav-text {
-            color: var(--rojo);
-            font-weight: bold;
-            margin-top: 8px;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.85rem;
-        }
+        .alerta { animation: pulse 0.6s infinite; border-color: var(--rojo) !important; box-shadow: 0 0 40px var(--rojo); }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        
+        #lista-spots { width: 100%; max-width: 450px; }
+        .spot-card { background: #111; padding: 15px; margin-bottom: 12px; border-radius: 10px; border-left: 5px solid var(--rojo); cursor: pointer; transition: 0.3s; }
+        .spot-card:hover { background: #1a1a1a; }
+        h1 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
     </style>
 </head>
 <body>
 
-    <h1>Radar Paranormal</h1>
-    
-    <div id="radar">
-        <span id="estado">Iniciando...</span>
-    </div>
-    
+    <h1>Radar de Energía</h1>
+    <div id="radar"><span id="estado">Iniciando...</span></div>
     <div id="lista-spots"></div>
 
     <script>
         let allData = [];
-        const RADIO_KM = 500; // Radio amplio para pruebas
+        const RADIO_KM = 500; 
 
-        // 1. Cargar datos
         fetch('hotspots.json')
             .then(r => r.json())
-            .then(data => { 
-                allData = data; 
-                document.getElementById('estado').textContent = "Buscando..."; 
-            })
-            .catch(e => {
-                document.getElementById('estado').textContent = "Error JSON";
-                console.error("Error cargando hotspots.json:", e);
-            });
+            .then(data => { allData = data; document.getElementById('estado').textContent = "Buscando..."; })
+            .catch(e => document.getElementById('estado').textContent = "Error JSON");
 
-        // 2. Cálculo de distancia (Fórmula de Haversine)
         function getDistanciaKm(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Radio de la Tierra en km
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // 3. Monitoreo GPS
-        if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition((pos) => {
-                if(allData.length === 0) return;
-                const { latitude, longitude } = pos.coords;
-                const cercanos = allData.map(h => ({
-                    ...h,
-                    dist: getDistanciaKm(latitude, longitude, h.lat, h.lng)
-                })).filter(h => h.dist <= RADIO_KM).sort((a, b) => a.dist - b.dist);
-                
-                actualizarUI(cercanos);
-            }, (err) => {
-                document.getElementById('estado').textContent = "Error GPS: " + err.message;
-                console.error("Error de Geolocalización:", err);
-            }, {enableHighAccuracy: true});
-        } else {
-            document.getElementById('estado').textContent = "GPS No Soportado";
-        }
+        navigator.geolocation.watchPosition((pos) => {
+            if(allData.length === 0) return;
+            const { latitude, longitude } = pos.coords;
+            const cercanos = allData.map(h => ({
+                ...h,
+                dist: getDistanciaKm(latitude, longitude, h.lat, h.lng)
+            })).filter(h => h.dist <= RADIO_KM).sort((a, b) => a.dist - b.dist);
+            
+            actualizarUI(cercanos);
+        }, (err) => {
+            document.getElementById('estado').textContent = "GPS Denegado";
+        }, {enableHighAccuracy: true});
 
-        // 4. Actualización de Interfaz
         function actualizarUI(cercanos) {
             const radar = document.getElementById('radar');
             const estado = document.getElementById('estado');
@@ -205,16 +65,14 @@
 
             if(cercanos.length > 0) {
                 radar.classList.add('alerta');
-                estado.textContent = `${cercanos.length} ENTES DETECTADOS`;
-                
+                estado.textContent = `${cercanos.length} DETECTADOS`;
                 lista.innerHTML = cercanos.map(h => `
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}&travelmode=driving" 
-                       target="_blank" class="nav-link">
-                        <div class="spot-card alerta-card">
-                            <strong>${h.name}</strong>
-                            <small>Distancia: ${h.dist.toFixed(1)} km</small>
-                            <small>Coordenadas: (${h.lat.toFixed(4)}, ${h.lng.toFixed(4)})</small>
-                            <span class="nav-text">📍 Iniciar Navegación Siniestra</span>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=$${h.lat},${h.lng}&travelmode=driving" 
+                       target="_blank" style="text-decoration:none; color:inherit;">
+                        <div class="spot-card">
+                            <strong>${h.name}</strong><br>
+                            <small>Distancia: ${h.dist.toFixed(1)} km</small><br>
+                            <small style="color:var(--rojo)">📍 Abrir navegación</small>
                         </div>
                     </a>
                 `).join('');
