@@ -1,77 +1,48 @@
-<script>
-    // Configuración inicial
-    let allData = [];
-    const RADIO_KM = 50; // Aumentado a 50km para pruebas desde Utrera
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Radar</title>
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; }
+        #estado { color: yellow; border: 1px solid yellow; padding: 10px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Estado del Radar</h1>
+    <div id="estado">Iniciando...</div>
+    <div id="radar" style="width:100px; height:100px; border:2px solid red;"></div>
+    <div id="lista-spots"></div>
 
-    // 1. Carga del archivo JSON local (asegúrate de que esté en la misma carpeta)
-    fetch('hotspots.json')
-        .then(response => {
-            if (!response.ok) throw new Error("No se pudo cargar hotspots.json");
-            return response.json();
-        })
-        .then(data => {
-            allData = data;
-            console.log("Datos cargados correctamente:", allData.length, "puntos");
-        })
-        .catch(err => {
-            console.error("Error de carga:", err);
-            document.getElementById('estado').textContent = "Error: hotspots.json no encontrado";
-        });
+    <script>
+        // 1. Verificación de carga
+        const estadoDiv = document.getElementById('estado');
+        console.log("El script ha comenzado");
+        estadoDiv.textContent = "Script iniciado...";
 
-    // 2. Función Haversine para calcular distancia
-    function getDistanciaKm(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radio de la Tierra en km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat/2)**2 + 
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
+        fetch('hotspots.json')
+            .then(r => {
+                if (!r.ok) throw new Error("Archivo hotspots.json no encontrado (404)");
+                return r.json();
+            })
+            .then(data => {
+                estadoDiv.textContent = "JSON cargado con " + data.length + " puntos.";
+                console.log("Datos:", data);
+            })
+            .catch(e => {
+                estadoDiv.textContent = "ERROR: " + e.message;
+                alert("Error al cargar JSON: " + e.message);
+            });
 
-    // 3. Inicio del monitoreo GPS
-    if ("geolocation" in navigator) {
-        navigator.geolocation.watchPosition(
-            (pos) => {
-                const { latitude, longitude } = pos.coords;
-                if (allData.length === 0) return;
-
-                // Calcular distancias y filtrar
-                const cercanos = allData.map(h => ({
-                    ...h,
-                    dist: getDistanciaKm(latitude, longitude, h.lat, h.lng)
-                })).filter(h => h.dist <= RADIO_KM).sort((a, b) => a.dist - b.dist);
-
-                actualizarUI(cercanos);
-            },
-            (err) => {
-                console.error("Error de ubicación:", err);
-                document.getElementById('estado').textContent = "Permiso de ubicación denegado";
-            },
-            { enableHighAccuracy: true }
-        );
-    } else {
-        document.getElementById('estado').textContent = "Geolocalización no soportada";
-    }
-
-    // 4. Actualización de la interfaz
-    function actualizarUI(cercanos) {
-        const radar = document.getElementById('radar');
-        const estado = document.getElementById('estado');
-        const lista = document.getElementById('lista-spots');
-
-        if (cercanos.length > 0) {
-            radar.classList.add('alerta');
-            estado.textContent = `${cercanos.length} DETECTADOS`;
-            lista.innerHTML = cercanos.map(h => `
-                <div class="spot-card">
-                    <strong>${h.name}</strong><br>
-                    <small>A ${h.dist.toFixed(1)} km de distancia</small>
-                </div>
-            `).join('');
+        // 2. Verificación de Geolocalización
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => { estadoDiv.textContent += " | GPS detectado!"; },
+                (err) => { estadoDiv.textContent += " | ERROR GPS: " + err.message; }
+            );
         } else {
-            radar.classList.remove('alerta');
-            estado.textContent = "ZONA SEGURA";
-            lista.innerHTML = "";
+            estadoDiv.textContent += " | GPS no soportado.";
         }
-    }
-</script>
+    </script>
+</body>
+</html>
