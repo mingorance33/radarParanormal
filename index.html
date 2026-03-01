@@ -1,91 +1,77 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radar Paranormal Pro</title>
-    <style>
-        :root { --bg: #050506; --rojo: #b10018; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        #radar {
-            width: 200px; height: 200px; border: 4px solid #333; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.5s ease; position: relative; margin-bottom: 20px;
+<script>
+    // Configuración inicial
+    let allData = [];
+    const RADIO_KM = 50; // Aumentado a 50km para pruebas desde Utrera
+
+    // 1. Carga del archivo JSON local (asegúrate de que esté en la misma carpeta)
+    fetch('hotspots.json')
+        .then(response => {
+            if (!response.ok) throw new Error("No se pudo cargar hotspots.json");
+            return response.json();
+        })
+        .then(data => {
+            allData = data;
+            console.log("Datos cargados correctamente:", allData.length, "puntos");
+        })
+        .catch(err => {
+            console.error("Error de carga:", err);
+            document.getElementById('estado').textContent = "Error: hotspots.json no encontrado";
+        });
+
+    // 2. Función Haversine para calcular distancia
+    function getDistanciaKm(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Radio de la Tierra en km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2)**2 + 
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // 3. Inicio del monitoreo GPS
+    if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                if (allData.length === 0) return;
+
+                // Calcular distancias y filtrar
+                const cercanos = allData.map(h => ({
+                    ...h,
+                    dist: getDistanciaKm(latitude, longitude, h.lat, h.lng)
+                })).filter(h => h.dist <= RADIO_KM).sort((a, b) => a.dist - b.dist);
+
+                actualizarUI(cercanos);
+            },
+            (err) => {
+                console.error("Error de ubicación:", err);
+                document.getElementById('estado').textContent = "Permiso de ubicación denegado";
+            },
+            { enableHighAccuracy: true }
+        );
+    } else {
+        document.getElementById('estado').textContent = "Geolocalización no soportada";
+    }
+
+    // 4. Actualización de la interfaz
+    function actualizarUI(cercanos) {
+        const radar = document.getElementById('radar');
+        const estado = document.getElementById('estado');
+        const lista = document.getElementById('lista-spots');
+
+        if (cercanos.length > 0) {
+            radar.classList.add('alerta');
+            estado.textContent = `${cercanos.length} DETECTADOS`;
+            lista.innerHTML = cercanos.map(h => `
+                <div class="spot-card">
+                    <strong>${h.name}</strong><br>
+                    <small>A ${h.dist.toFixed(1)} km de distancia</small>
+                </div>
+            `).join('');
+        } else {
+            radar.classList.remove('alerta');
+            estado.textContent = "ZONA SEGURA";
+            lista.innerHTML = "";
         }
-        .alerta { animation: pulse 0.5s infinite; border-color: var(--rojo) !important; box-shadow: 0 0 20px var(--rojo); }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        
-        #lista-spots { width: 100%; max-width: 400px; }
-        .spot-card { background: #111; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid var(--rojo); }
-    </style>
-</head>
-<body>
-
-    <h1>Radar de Energía</h1>
-    <div id="radar"><span id="estado">Buscando...</span></div>
-    <div id="lista-spots"></div>
-
-    <script>
-        // URL configurada para leer tu archivo JSON real
-        const JSON_URL = 'https://mapaparanormal.netlify.app/hotspots.json';
-        let allData = [];
-        const RADIO_KM = 5;
-
-        // 1. Cargar datos desde tu URL
-        fetch(JSON_URL)
-            .then(r => r.json())
-            .then(data => {
-                allData = data;
-                console.log("Datos cargados correctamente");
-            })
-            .catch(e => console.error("Error al cargar JSON:", e));
-
-        // 2. Función distancia
-        function getDistanciaKm(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
-        // 3. Monitorear ubicación
-        navigator.geolocation.watchPosition((pos) => {
-            if(allData.length === 0) return;
-
-            const { latitude, longitude } = pos.coords;
-            const cercanos = allData.map(h => ({
-                ...h,
-                dist: getDistanciaKm(latitude, longitude, h.lat, h.lng)
-            })).filter(h => h.dist <= RADIO_KM).sort((a, b) => a.dist - b.dist);
-
-            actualizarRadar(cercanos);
-        }, (err) => {
-            document.getElementById('estado').textContent = "Activa el GPS";
-        }, { enableHighAccuracy: true });
-
-        // 4. Actualizar Interfaz
-        function actualizarRadar(cercanos) {
-            const radar = document.getElementById('radar');
-            const estado = document.getElementById('estado');
-            const lista = document.getElementById('lista-spots');
-
-            if(cercanos.length > 0) {
-                radar.classList.add('alerta');
-                estado.textContent = `${cercanos.length} DETECTADOS`;
-                lista.innerHTML = cercanos.map(h => `
-                    <div class="spot-card">
-                        <strong>${h.name}</strong><br>
-                        <small>A ${h.dist.toFixed(2)} km de tu posición</small>
-                    </div>
-                `).join('');
-            } else {
-                radar.classList.remove('alerta');
-                estado.textContent = "ZONA SEGURA";
-                lista.innerHTML = "";
-            }
-        }
-    </script>
-</body>
-</html>
+    }
+</script>
