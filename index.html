@@ -62,8 +62,9 @@
             if(cercanos.length > 0) {
                 radar.classList.add('alerta');
                 estado.textContent = `${cercanos.length} DETECTADOS`;
+            // Sustituye tu línea actual de 'lista.innerHTML' por esta:
                 lista.innerHTML = cercanos.map(h => `
-                    <a href="http://googleusercontent.com/maps.google.com/7${h.lat},${h.lng}" 
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}&travelmode=driving" 
                        target="_blank" style="text-decoration:none; color:inherit;">
                         <div class="spot-card">
                             <strong>${h.name}</strong><br>
